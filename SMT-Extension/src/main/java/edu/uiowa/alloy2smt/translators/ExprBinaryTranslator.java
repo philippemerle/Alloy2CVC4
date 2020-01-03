@@ -1921,7 +1921,16 @@ public class ExprBinaryTranslator
     private Expression translateSubsetOperation(ExprBinary expr, BinaryExpression.Op op, Environment environment)
     {
         Expression left     = exprTranslator.translateExpr(expr.left, environment);
-        Expression right    = exprTranslator.translateExpr(expr.right, environment);
+        Environment newEnvironment = new Environment(environment);
+        Expression right    = exprTranslator.translateExpr(expr.right, newEnvironment);
+
+        // auxiliary formulas are added for multiplicity constraints
+        if(newEnvironment.getAuxiliaryFormula() != null)
+        {
+            Expression expression =  newEnvironment.getAuxiliaryFormula();
+            expression = ((QuantifiedExpression)expression).getExpression().replace(right, left);
+            return expression;
+        }
 
         left = AlloyUtils.makeSet(left);
         right = AlloyUtils.makeSet(right);
@@ -1942,6 +1951,7 @@ public class ExprBinaryTranslator
         {
             finalExpr = UnaryExpression.Op.NOT.make(finalExpr);
         }
+        //ToDo: review the need for this code
         if(!exprTranslator.translator.existentialBdVars.isEmpty())
         {
             if(exprTranslator.translator.auxExpr != null)

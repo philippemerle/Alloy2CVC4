@@ -236,115 +236,67 @@ public class ExprUnaryTranslator
     
     private Expression translateOneOf(ExprUnary exprUnary, Environment environment)
     {
-        Expression set = exprTranslator.translateExpr(exprUnary.sub, environment);
+        Expression A = exprTranslator.translateExpr(exprUnary.sub, environment);
+        //return set;
 
-        return set;
+        // one A is translated into
+        // exists set.
+        //        exists x. (singleton x) = set
+        //        and member x A
+
+        SetSort sortA = (SetSort) A.getSort();
+        VariableDeclaration set = new VariableDeclaration(TranslatorUtils.getFreshName(sortA), sortA, false);
+        VariableDeclaration x = new VariableDeclaration("x", sortA.elementSort, false);
+        Expression xMemberA = BinaryExpression.Op.MEMBER.make(x.getVariable(), A);
+        Expression singletonX = UnaryExpression.Op.SINGLETON.make(x.getVariable());
+        Expression equality = BinaryExpression.Op.EQ.make(set.getVariable(), singletonX);
+        Expression and = MultiArityExpression.Op.AND.make(equality, xMemberA);
+
+        Expression existsX = QuantifiedExpression.Op.EXISTS.make(and, x);
+        QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(existsX, set);
+
+        environment.addAuxiliaryFormula(existsSet);
+
+        return set.getVariable();
     }    
 
     private Expression translateLone(ExprUnary expr, Environment environment)
     {
-        Expression expression = exprTranslator.translateExpr(expr.sub, environment);
+        Expression A = exprTranslator.translateExpr(expr.sub, environment);
+
+        SetSort sortA = (SetSort) A.getSort();
+        Expression emptySet = UnaryExpression.Op.EMPTYSET.make(sortA);
+        Expression isEmpty = BinaryExpression.Op.EQ.make(emptySet, A);
+
+        VariableDeclaration x = new VariableDeclaration("x", sortA.elementSort, false);
+        Expression singletonX = UnaryExpression.Op.SINGLETON.make(x.getVariable());
+        Expression equality = BinaryExpression.Op.EQ.make(singletonX, A);
+        Expression existsX = QuantifiedExpression.Op.EXISTS.make(equality, x);
+        Expression or = MultiArityExpression.Op.OR.make(isEmpty, existsX);
 
         if(expr.type().is_bool)
         {
-            SetSort sort = (SetSort) expression.getSort();
-            Expression emptySet = UnaryExpression.Op.EMPTYSET.make(sort);
-            Expression isEmpty = BinaryExpression.Op.EQ.make(emptySet, expression);
-
-            VariableDeclaration element = new VariableDeclaration("s", sort.elementSort, false);
-            Expression singleton = UnaryExpression.Op.SINGLETON.make(element.getVariable());
-            Expression isSingleon = BinaryExpression.Op.EQ.make(singleton, expression);
-            Expression exists = QuantifiedExpression.Op.EXISTS.make(isSingleon, element);
-            Expression or = MultiArityExpression.Op.OR.make(isEmpty, exists);
+            //ToDo: review then case and else case
             return or;
         }
         else
         {
-            return expression;
-            // (lone e(x, y)) is translated into
-            // declare a new set S(x, y)
-            // assert forall x, y (x, y constraints) either S(x, y) is singleton or S(x,y) is empty
-//            FunctionDeclaration multiplicitySet = translator.multiplicityVariableMap.get(expr);
-//
-//            if(multiplicitySet != null)
-//            {
-//                return multiplicitySet.getVariable();
-//            }
-//            LinkedHashMap<String, Expression> argumentsMap = environment.getVariables();
-//            List<VariableDeclaration> quantifiedArguments = new ArrayList<>();
-//            List<Expression> arguments = new ArrayList<>();
-//            List<Sort> argumentSorts = new ArrayList<>();
-//            Expression constraints = BoolConstant.True;
-//            for (Map.Entry<String, Expression> argument : argumentsMap.entrySet())
-//            {
-//                Variable variable = (Variable) argument.getValue();
-//
-//                VariableDeclaration declaration = (VariableDeclaration) variable.getDeclaration();
-//
-//                arguments.add(variable);
-//                Sort sort = variable.getSort();
-//                argumentSorts.add(sort);
-//
-//                // handle set sorts differently to avoid second order quantification
-//                if (sort instanceof SetSort)
-//                {
-//                    Sort elementSort = ((SetSort) sort).elementSort;
-//                    VariableDeclaration tuple = new VariableDeclaration(variable.getComment(), elementSort, null);
-//                    tuple.setOriginalName(argument.getKey());
-//                    quantifiedArguments.add(tuple);
-//                    Expression constraint = declaration.getConstraint().replace(variable, tuple.getVariable());
-//                    constraints = new BinaryExpression(constraints, BinaryExpression.Op.AND, constraint);
-//                }
-//                else if (sort instanceof TupleSort || sort instanceof UninterpretedSort)
-//                {
-//                    quantifiedArguments.add((VariableDeclaration) variable.getDeclaration());
-//                    constraints = new BinaryExpression(constraints, BinaryExpression.Op.AND, declaration.getConstraint());
-//                }
-//                else
-//                {
-//                    throw new UnsupportedOperationException();
-//                }
-//            }
-//             multiplicitySet = new FunctionDeclaration(TranslatorUtils.getFreshName(), argumentSorts, expression.getSort());
-//
-//            translator.smtProgram.addFunction(multiplicitySet);
-//            Expression setFunctionExpression;
-//
-//            if (argumentSorts.size() == 0)
-//            {
-//                setFunctionExpression = multiplicitySet.getVariable();
-//            }
-//            else
-//            {
-//                List<Expression> expressions = AlloyUtils.getFunctionCallArguments(quantifiedArguments, argumentsMap);
-//                setFunctionExpression = new FunctionCallExpression(multiplicitySet, expressions);
-//            }
-//
-//            SetSort sort = (SetSort) multiplicitySet.getSort();
-//            Expression emptySet = new UnaryExpression(UnaryExpression.Op.EMPTYSET, sort);
-//            Expression isEmpty = new BinaryExpression(emptySet, BinaryExpression.Op.EQ, setFunctionExpression);
-//
-//            VariableDeclaration element = new VariableDeclaration("__s__", sort.elementSort, null);
-//            Expression singleton = new UnaryExpression(UnaryExpression.Op.SINGLETON, element.getVariable());
-//            Expression isSingleon = new BinaryExpression(singleton, BinaryExpression.Op.EQ, setFunctionExpression);
-//            Expression exists = new QuantifiedExpression(QuantifiedExpression.Op.EXISTS, isSingleon, element);
-//            Expression or = new BinaryExpression(isEmpty, BinaryExpression.Op.OR, exists);
-//
-//            Expression implies = new BinaryExpression(constraints, BinaryExpression.Op.IMPLIES, or);
-//
-//            Expression forAll = new QuantifiedExpression(QuantifiedExpression.Op.FORALL, quantifiedArguments, implies);
-//
-//            Assertion assertion = new Assertion(expr.toString(), forAll);
-//            translator.smtProgram.addAssertion(assertion);
-//
-//            if (argumentSorts.size() == 0)
-//            {
-//                return multiplicitySet.getVariable();
-//            }
-//            else
-//            {
-//                return new FunctionCallExpression(multiplicitySet, arguments);
-//            }
+            //return set;
+
+            // lone A is translated into
+            // exists set.
+            //        exists x. (singleton x) = set and member x A
+            //          or
+            //        set = emptySet
+
+            VariableDeclaration set = new VariableDeclaration(TranslatorUtils.getFreshName(sortA), sortA, false);
+            Expression xMemberA = BinaryExpression.Op.MEMBER.make(x.getVariable(), A);
+            Expression and = MultiArityExpression.Op.AND.make(equality, xMemberA);
+            or = MultiArityExpression.Op.OR.make(isEmpty, and);
+            existsX = QuantifiedExpression.Op.EXISTS.make(or, x);
+            QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(existsX, set);
+            environment.addAuxiliaryFormula(existsSet);
+            return set.getVariable();
         }
     }
     
