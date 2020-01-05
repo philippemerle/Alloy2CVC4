@@ -255,7 +255,7 @@ public class ExprUnaryTranslator
         Expression existsX = QuantifiedExpression.Op.EXISTS.make(and, x);
         QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(existsX, set);
 
-        environment.addAuxiliaryFormula(existsSet);
+        environment.appendAuxiliaryFormula(existsSet);
 
         return set.getVariable();
     }    
@@ -295,7 +295,7 @@ public class ExprUnaryTranslator
             or = MultiArityExpression.Op.OR.make(isEmpty, and);
             existsX = QuantifiedExpression.Op.EXISTS.make(or, x);
             QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(existsX, set);
-            environment.addAuxiliaryFormula(existsSet);
+            environment.appendAuxiliaryFormula(existsSet);
             return set.getVariable();
         }
     }

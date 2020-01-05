@@ -1,14 +1,8 @@
 package edu.uiowa.smt;
 
-import edu.uiowa.smt.smtAst.Expression;
-import edu.uiowa.smt.smtAst.MultiArityExpression;
-import edu.uiowa.smt.smtAst.QuantifiedExpression;
-import edu.uiowa.smt.smtAst.VariableDeclaration;
+import edu.uiowa.smt.smtAst.*;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Environment
 {
@@ -92,7 +86,7 @@ public class Environment
         return map;
     }
 
-    public void addAuxiliaryFormula(QuantifiedExpression expression)
+    public void appendAuxiliaryFormula(QuantifiedExpression expression)
     {
         if(expression.getOp() != QuantifiedExpression.Op.EXISTS)
         {
@@ -104,7 +98,7 @@ public class Environment
         }
         else
         {
-            List<VariableDeclaration> variables = auxiliaryFormula.getVariables();
+            List<VariableDeclaration> variables = new ArrayList(auxiliaryFormula.getVariables());
             variables.addAll(expression.getVariables());
 
             Expression and = MultiArityExpression.Op.AND.make(auxiliaryFormula.getExpression(), expression);
@@ -112,8 +106,36 @@ public class Environment
         }
     }
 
+    public void setAuxiliaryFormula(QuantifiedExpression expression)
+    {
+        if(expression.getOp() != QuantifiedExpression.Op.EXISTS)
+        {
+            throw new UnsupportedOperationException();
+        }
+        if(auxiliaryFormula == null)
+        {
+            auxiliaryFormula = expression;
+        }
+        else
+        {
+            auxiliaryFormula = expression;
+        }
+    }
+
     public QuantifiedExpression getAuxiliaryFormula()
     {
         return auxiliaryFormula;
+    }
+
+    public Expression clearAuxiliaryFormula(Expression booleanExpression)
+    {
+        if(auxiliaryFormula == null)
+        {
+            return booleanExpression;
+        }
+        Expression body = MultiArityExpression.Op.AND.make(auxiliaryFormula.getExpression(), booleanExpression);
+        QuantifiedExpression formula = auxiliaryFormula.getOp().make(body, auxiliaryFormula.getVariables());
+        auxiliaryFormula = null;
+        return formula;
     }
 }

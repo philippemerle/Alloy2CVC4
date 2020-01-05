@@ -158,7 +158,7 @@ public class ExprBinaryTranslator
 
         Expression and = MultiArityExpression.Op.AND.make(subset, forAllX, forAllY);
         QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(and, multiplicitySet);
-        environment.addAuxiliaryFormula(existsSet);
+        environment.appendAuxiliaryFormula(existsSet);
 
 
         return multiplicitySet.getVariable();
@@ -223,7 +223,7 @@ public class ExprBinaryTranslator
 
         Expression and = MultiArityExpression.Op.AND.make(subset, forAllX, forAllY);
         QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(and, multiplicitySet);
-        environment.addAuxiliaryFormula(existsSet);
+        environment.appendAuxiliaryFormula(existsSet);
 
 
         return multiplicitySet.getVariable();
@@ -280,7 +280,7 @@ public class ExprBinaryTranslator
         Expression and = MultiArityExpression.Op.AND.make(subset, forAllY);
 
         QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(and, multiplicitySet);
-        environment.addAuxiliaryFormula(existsSet);
+        environment.appendAuxiliaryFormula(existsSet);
 
         return multiplicitySet.getVariable();
     }
@@ -343,7 +343,7 @@ public class ExprBinaryTranslator
 
         Expression and = MultiArityExpression.Op.AND.make(subset, forAllX, forAllY);
         QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(and, multiplicitySet);
-        environment.addAuxiliaryFormula(existsSet);
+        environment.appendAuxiliaryFormula(existsSet);
 
         return multiplicitySet.getVariable();
     }
@@ -397,7 +397,7 @@ public class ExprBinaryTranslator
 
         Expression and = MultiArityExpression.Op.AND.make(subset, forAllX);
         QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(and, multiplicitySet);
-        environment.addAuxiliaryFormula(existsSet);
+        environment.appendAuxiliaryFormula(existsSet);
 
         return multiplicitySet.getVariable();
     }
@@ -445,7 +445,7 @@ public class ExprBinaryTranslator
         Expression and = MultiArityExpression.Op.AND.make(Arrays.asList(forAllX, forAllY, subset));
 
         QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(and, multiplicitySet);
-        environment.addAuxiliaryFormula(existsSet);
+        environment.appendAuxiliaryFormula(existsSet);
         return multiplicitySet.getVariable();
     }
 
@@ -484,7 +484,7 @@ public class ExprBinaryTranslator
         Expression and = MultiArityExpression.Op.AND.make(subset, forAllY);
         QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(and, multiplicitySet);
 
-        environment.addAuxiliaryFormula(existsSet);
+        environment.appendAuxiliaryFormula(existsSet);
 
         return multiplicitySet.getVariable();
     }
@@ -523,7 +523,7 @@ public class ExprBinaryTranslator
         Expression and = MultiArityExpression.Op.AND.make(subset, forAllX);
         QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(and, multiplicitySet);
 
-        environment.addAuxiliaryFormula(existsSet);
+        environment.appendAuxiliaryFormula(existsSet);
         return multiplicitySet.getVariable();
     }
 
@@ -603,7 +603,7 @@ public class ExprBinaryTranslator
 
         Expression and = MultiArityExpression.Op.AND.make(subset, forAllX, forAllY);
         QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(and, multiplicitySet);
-        environment.addAuxiliaryFormula(existsSet);
+        environment.appendAuxiliaryFormula(existsSet);
 
 
         return multiplicitySet.getVariable();
@@ -673,7 +673,7 @@ public class ExprBinaryTranslator
 
         Expression and = MultiArityExpression.Op.AND.make(subset, forAllX, forAllY);
         QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(and, multiplicitySet);
-        environment.addAuxiliaryFormula(existsSet);
+        environment.appendAuxiliaryFormula(existsSet);
 
         return multiplicitySet.getVariable();
     }
@@ -733,7 +733,7 @@ public class ExprBinaryTranslator
 
         Expression and = MultiArityExpression.Op.AND.make(subset, forAllX);
         QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(and, multiplicitySet);
-        environment.addAuxiliaryFormula(existsSet);
+        environment.appendAuxiliaryFormula(existsSet);
 
 
         return multiplicitySet.getVariable();
@@ -818,7 +818,7 @@ public class ExprBinaryTranslator
 
         Expression and = MultiArityExpression.Op.AND.make(subset, forAllX, forAllY);
         QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(and, multiplicitySet);
-        environment.addAuxiliaryFormula(existsSet);
+        environment.appendAuxiliaryFormula(existsSet);
 
 
         return multiplicitySet.getVariable();
@@ -900,7 +900,7 @@ public class ExprBinaryTranslator
 
         Expression and = MultiArityExpression.Op.AND.make(subset, forAllX, forAllY);
         QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(and, multiplicitySet);
-        environment.addAuxiliaryFormula(existsSet);
+        environment.appendAuxiliaryFormula(existsSet);
 
 
         return multiplicitySet.getVariable();
@@ -973,7 +973,7 @@ public class ExprBinaryTranslator
 
         Expression and = MultiArityExpression.Op.AND.make(subset, forAllX, forAllY);
         QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(and, multiplicitySet);
-        environment.addAuxiliaryFormula(existsSet);
+        environment.appendAuxiliaryFormula(existsSet);
 
         return multiplicitySet.getVariable();
     }
@@ -1033,7 +1033,7 @@ public class ExprBinaryTranslator
 
         Expression and = MultiArityExpression.Op.AND.make(subset, forAllY);
         QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(and, multiplicitySet);
-        environment.addAuxiliaryFormula(existsSet);
+        environment.appendAuxiliaryFormula(existsSet);
 
         return multiplicitySet.getVariable();
     }
@@ -1752,8 +1752,8 @@ public class ExprBinaryTranslator
                 exprTranslator.translator.auxExpr = null;
             }
             finalExpr = QuantifiedExpression.Op.EXISTS.make(finalExpr, exprTranslator.translator.existentialBdVars);
-        }                
-        return finalExpr;        
+        }
+        return finalExpr;
     }
 
     private Expression translateCardinality(ExprBinary expr, BinaryExpression.Op op , Environment environment)

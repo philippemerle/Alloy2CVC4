@@ -1,7 +1,6 @@
 package edu.uiowa.alloy2smt.translators;
 
 import edu.mit.csail.sdg.ast.*;
-import edu.uiowa.alloy2smt.utils.AlloyUtils;
 import edu.uiowa.smt.Environment;
 import edu.uiowa.smt.TranslatorUtils;
 import edu.uiowa.smt.smtAst.*;
@@ -127,9 +126,9 @@ public class ExprQtTranslator
     private Expression translateComprehension(ExprQt exprQt, Expression body, Map<String, Expression> ranges, Environment environment)
     {
         // {x: e1, y: e2, ... | f} is translated into
-        // declare-fun comprehension(freeVariables): (e1 x e2 x ...)
-        // assert forall x, y,... (x in e1 and y in e2 ... and f <=>
-        // (x, y, ...) in comprehension(freeVariables))
+        // exists set: (e1 x e2 x ...)
+        //      forall x, y,... (x in e1 and y in e2 ... and f <=>
+        //      (x, y, ...) in set
 
         List<VariableDeclaration> quantifiedVariables = ranges.entrySet()
                                                               .stream()
@@ -144,50 +143,9 @@ public class ExprQtTranslator
 
         Expression membership = getMemberOrSubsetExpressions(ranges, environment);
 
-        // add variables in the environment as arguments to the set function
-        LinkedHashMap<String, Expression> argumentsMap = environment.getParent().getVariables();
-        List<Sort> argumentSorts = new ArrayList<>();
-        List<Expression> arguments = new ArrayList<>();
-        List<VariableDeclaration> quantifiedArguments = new ArrayList<>();
-        for (Map.Entry<String, Expression> argument: argumentsMap.entrySet())
-        {
-            Variable variable = (Variable) argument.getValue();
-            arguments.add(variable);
-            Sort sort = variable.getSort();
-            argumentSorts.add(sort);
+        VariableDeclaration setVariable = new VariableDeclaration(TranslatorUtils.getFreshName(returnSort),returnSort, false);
 
-            // handle set sorts differently to avoid second order quantification
-            if(sort instanceof SetSort)
-            {
-                Sort elementSort = ((SetSort) sort).elementSort;
-                VariableDeclaration tuple = new VariableDeclaration(variable.getName(), elementSort, variable.isOriginal());
-                quantifiedArguments.add(tuple);
-                Expression singleton = UnaryExpression.Op.SINGLETON.make(tuple.getVariable());
-                body = body.replace(variable, singleton);
-                membership = membership.replace(argument.getValue(), singleton);
-            }
-            else if (sort instanceof TupleSort || sort instanceof UninterpretedSort)
-            {
-                quantifiedArguments.add((VariableDeclaration) variable.getDeclaration());
-            }
-            else
-            {
-                throw new UnsupportedOperationException();
-            }
-        }
-        FunctionDeclaration setFunction = new FunctionDeclaration(TranslatorUtils.getFreshName(returnSort), argumentSorts, returnSort, false);
-        translator.smtProgram.addFunction(setFunction);
-
-        Expression setFunctionExpression;
-        if(argumentSorts.size() == 0)
-        {
-            setFunctionExpression = setFunction.getVariable();
-        }
-        else
-        {
-            List<Expression> expressions = AlloyUtils.getFunctionCallArguments(quantifiedArguments, argumentsMap);
-            setFunctionExpression = new FunctionCallExpression(setFunction, expressions);
-        }
+        Expression setFunctionExpression = setVariable.getVariable();
 
         List<Expression> quantifiedExpressions = quantifiedVariables.stream()
                     .map(v -> BinaryExpression.Op.TUPSEL.make(IntConstant.getInstance(0), v.getVariable()))
@@ -201,22 +159,13 @@ public class ExprQtTranslator
 
         Expression equivalence = BinaryExpression.Op.EQ.make(tupleMember, and);
 
-        // add variables defined in functions, predicates or let expression to the list of quantifiers
-        quantifiedArguments.addAll(quantifiedVariables);
-        Expression forAll = QuantifiedExpression.Op.FORALL.make(equivalence, quantifiedArguments);
+        Expression forAll = QuantifiedExpression.Op.FORALL.make(equivalence, quantifiedVariables);
 
-        Assertion assertion = AlloyUtils.getAssertion(Collections.singletonList(exprQt.pos),
-                exprQt.toString(), forAll);
-        translator.smtProgram.addAssertion(assertion);
+        Expression existsBody = MultiArityExpression.Op.AND.make(environment.getAuxiliaryFormula(), forAll);
 
-        if(argumentSorts.size() == 0)
-        {
-            return setFunction.getVariable();
-        }
-        else
-        {
-            return new FunctionCallExpression(setFunction, arguments);
-        }
+        QuantifiedExpression exists = QuantifiedExpression.Op.EXISTS.make(existsBody, setVariable);
+        environment.getParent().setAuxiliaryFormula(exists);
+        return setVariable.getVariable();
     }
 
 

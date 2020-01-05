@@ -6,9 +6,7 @@ import edu.uiowa.smt.TranslatorUtils;
 import edu.uiowa.smt.smtAst.FunctionDefinition;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -262,6 +260,25 @@ public class ExprQtTranslatorTests
                 "fact {some D:set A | all x: lone identity[D]| x != none}";
         List<CommandResult> commandResults = AlloyUtils.runAlloyString(alloy, false);
         assertEquals("unsat", commandResults.get(0).satResult);
+    }
+
+    @Test
+    void setComprehension4() throws Exception
+    {
+        String alloy =
+                "sig B {}\n" +
+                "sig A \n" +
+                "{\n" +
+                "\tf: set B\n" +
+                "}\n" +
+                "\n" +
+                "fact {f = {x: A, y : B | none = none }}\n" +
+                "run {#A = 3 and #B = 2} for 3";
+        List<CommandResult> commandResults = AlloyUtils.runAlloyString(alloy, false);
+        assertEquals("sat", commandResults.get(0).satResult);
+        FunctionDefinition f = AlloyUtils.getFunctionDefinition(commandResults.get(0), "this/f");
+        Set<String> set = TranslatorUtils.getAtomSet(f);
+        assertEquals(6, set.size());
     }
 
     @Test
