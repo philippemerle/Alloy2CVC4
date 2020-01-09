@@ -276,8 +276,8 @@ public class ExprQtTranslatorTests
                 "run {#A = 3 and #B = 2} for 3";
         List<CommandResult> commandResults = AlloyUtils.runAlloyString(alloy, false);
         assertEquals("sat", commandResults.get(0).satResult);
-        FunctionDefinition f = AlloyUtils.getFunctionDefinition(commandResults.get(0), "this/f");
-        Set<String> set = TranslatorUtils.getAtomSet(f);
+        FunctionDefinition f = AlloyUtils.getFunctionDefinition(commandResults.get(0), "this/A/f");
+        Set<List<String>> set = TranslatorUtils.getRelation(f);
         assertEquals(6, set.size());
     }
 

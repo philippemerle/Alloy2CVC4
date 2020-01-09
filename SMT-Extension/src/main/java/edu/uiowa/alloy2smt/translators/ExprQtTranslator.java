@@ -159,12 +159,13 @@ public class ExprQtTranslator
 
         Expression equivalence = BinaryExpression.Op.EQ.make(tupleMember, and);
 
-        Expression forAll = QuantifiedExpression.Op.FORALL.make(equivalence, quantifiedVariables);
+        assert environment.getAuxiliaryFormula().getOp() == QuantifiedExpression.Op.EXISTS;
 
-        Expression existsBody = MultiArityExpression.Op.AND.make(environment.getAuxiliaryFormula(), forAll);
+        Expression exists = environment.clearAuxiliaryFormula(equivalence);
 
-        QuantifiedExpression exists = QuantifiedExpression.Op.EXISTS.make(existsBody, setVariable);
-        environment.getParent().setAuxiliaryFormula(exists);
+        Expression forAll = QuantifiedExpression.Op.FORALL.make(exists, quantifiedVariables);
+        QuantifiedExpression existsSet = QuantifiedExpression.Op.EXISTS.make(forAll, setVariable);
+        environment.getParent().setAuxiliaryFormula(existsSet);
         return setVariable.getVariable();
     }
 
